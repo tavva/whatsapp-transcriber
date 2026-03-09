@@ -1,5 +1,5 @@
 // ABOUTME: Wraps the Deepgram SDK to transcribe audio buffers.
-// ABOUTME: Returns the transcript text or throws on failure.
+// ABOUTME: Returns the transcript text and audio duration, or throws on failure.
 
 export function createTranscriber(deepgramClient) {
   return async function transcribe(audioBuffer) {
@@ -19,6 +19,7 @@ export function createTranscriber(deepgramClient) {
       throw new Error("No transcription channels in Deepgram response");
     }
 
-    return channels[0].alternatives[0].transcript;
+    const duration = result?.metadata?.duration;
+    return { transcript: channels[0].alternatives[0].transcript, duration };
   };
 }

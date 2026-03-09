@@ -28,16 +28,17 @@ const client = createWhatsAppClient({
     const senderName = numberToName[number] || contact.pushname || "Unknown";
     console.log(`Voice note received from ${senderName} (${number})`);
 
+    let audioBuffer;
     try {
       const media = await message.downloadMedia();
-      const audioBuffer = Buffer.from(media.data, "base64");
+      audioBuffer = Buffer.from(media.data, "base64");
 
-      let transcript;
+      let result;
       try {
-        transcript = await transcribe(audioBuffer);
+        result = await transcribe(audioBuffer);
       } catch (err) {
         console.error("Transcription failed, retrying once:", err.message);
-        transcript = await transcribe(audioBuffer);
+        result = await transcribe(audioBuffer);
       }
 
       const timestamp = new Date(message.timestamp * 1000);
@@ -46,34 +47,34 @@ const client = createWhatsAppClient({
         outputDir: config.outputDir,
         senderName,
         timestamp,
-        duration: Math.round(media.filesize ? media.filesize / 1000 : 0),
-        transcript,
+        duration: Math.round(result.duration || 0),
+        transcript: result.transcript,
       });
 
       console.log(`Transcription saved to ${filePath}`);
 
       await sendSelfMessage(
         client,
-        `📝 Voice note from ${senderName}:\n\n${transcript}`
+        `📝 Voice note from ${senderName}:\n\n${result.transcript}`
       );
 
       console.log("Transcription sent to self in WhatsApp");
     } catch (err) {
       console.error(`Failed to process voice note from ${senderName}:`, err);
 
-      const failedDir = path.join(config.outputDir, "..", "failed");
-      fs.mkdirSync(failedDir, { recursive: true });
-      try {
-        const media = await message.downloadMedia();
-        const audioBuffer = Buffer.from(media.data, "base64");
-        const failedPath = path.join(
-          failedDir,
-          `${Date.now()}_${senderName}.ogg`
-        );
-        fs.writeFileSync(failedPath, audioBuffer);
-        console.log(`Audio saved to ${failedPath} for manual processing`);
-      } catch (saveErr) {
-        console.error("Failed to save audio file:", saveErr.message);
+      if (audioBuffer) {
+        const failedDir = path.join(config.outputDir, "..", "failed");
+        fs.mkdirSync(failedDir, { recursive: true });
+        try {
+          const failedPath = path.join(
+            failedDir,
+            `${Date.now()}_${senderName}.ogg`
+          );
+          fs.writeFileSync(failedPath, audioBuffer);
+          console.log(`Audio saved to ${failedPath} for manual processing`);
+        } catch (saveErr) {
+          console.error("Failed to save audio file:", saveErr.message);
+        }
       }
     }
   },

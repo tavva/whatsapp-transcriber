@@ -18,6 +18,7 @@ describe("createTranscriber", () => {
   it("returns the transcript text from a successful response", async () => {
     const mockClient = makeMockDeepgram({
       result: {
+        metadata: { duration: 5.2 },
         results: {
           channels: [
             { alternatives: [{ transcript: "Hello from the voice note" }] },
@@ -30,7 +31,8 @@ describe("createTranscriber", () => {
     const transcribe = createTranscriber(mockClient);
     const result = await transcribe(Buffer.from("fake-audio"));
 
-    expect(result).toBe("Hello from the voice note");
+    expect(result.transcript).toBe("Hello from the voice note");
+    expect(result.duration).toBe(5.2);
     expect(mockClient.listen.prerecorded.transcribeFile).toHaveBeenCalledWith(
       expect.any(Buffer),
       expect.objectContaining({ model: "nova-3", smart_format: true })

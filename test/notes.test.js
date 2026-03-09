@@ -45,7 +45,7 @@ describe("writeNote", () => {
     });
 
     const filename = path.basename(filePath);
-    expect(filename).toMatch(/^2026-03-09_\d{2}-\d{2}_Bob\.md$/);
+    expect(filename).toMatch(/^2026-03-09_\d{2}-\d{2}-\d{2}_Bob\.md$/);
   });
 
   it("creates the output directory if it does not exist", () => {

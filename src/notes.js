@@ -17,7 +17,8 @@ function formatDate(date) {
 function formatTime(date) {
   const h = String(date.getUTCHours()).padStart(2, "0");
   const m = String(date.getUTCMinutes()).padStart(2, "0");
-  return `${h}-${m}`;
+  const s = String(date.getUTCSeconds()).padStart(2, "0");
+  return `${h}-${m}-${s}`;
 }
 
 function formatTimestamp(date) {
