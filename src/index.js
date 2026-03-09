@@ -12,12 +12,16 @@ import path from "path";
 const CONFIG_PATH = process.env.CONFIG_PATH || "./config.yaml";
 
 const config = loadConfig(CONFIG_PATH);
-const deepgram = new DefaultDeepgramClient(config.deepgramApiKey);
+const deepgram = new DefaultDeepgramClient({
+  apiKey: `Token ${config.deepgramApiKey}`,
+  headers: { Authorization: `Token ${config.deepgramApiKey}` },
+});
 const transcribe = createTranscriber(deepgram);
 
-const whitelistedNumbers = new Set(config.whitelist.map((c) => c.number));
+const normalise = (n) => n.replace(/^\+/, "");
+const whitelistedNumbers = new Set(config.whitelist.map((c) => normalise(c.number)));
 const numberToName = Object.fromEntries(
-  config.whitelist.map((c) => [c.number, c.name])
+  config.whitelist.map((c) => [normalise(c.number), c.name])
 );
 
 const client = createWhatsAppClient({
@@ -79,5 +83,14 @@ const client = createWhatsAppClient({
     }
   },
 });
+
+async function shutdown() {
+  console.log("Shutting down...");
+  await client.destroy();
+  process.exit(0);
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 client.initialize();

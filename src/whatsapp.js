@@ -31,8 +31,9 @@ export function createWhatsAppClient({ authDir, onVoiceNote }) {
     console.log("WhatsApp disconnected:", reason);
   });
 
-  client.on("message", async (message) => {
-    if (message.type !== "ptt") return;
+  client.on("message_create", async (message) => {
+    console.log(`Message received: type=${message.type} from=${message.from} hasMedia=${message.hasMedia}`);
+    if (message.type !== "ptt" && message.type !== "audio") return;
 
     const contact = await message.getContact();
     const number = message.from.replace("@c.us", "");
