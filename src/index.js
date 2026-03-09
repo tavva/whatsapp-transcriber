@@ -1,7 +1,7 @@
 // ABOUTME: Entry point that wires WhatsApp, Deepgram, and note writing together.
 // ABOUTME: Listens for voice notes, transcribes them, saves markdown, and messages back.
 
-import { createClient } from "@deepgram/sdk";
+import { DefaultDeepgramClient } from "@deepgram/sdk";
 import { loadConfig } from "./config.js";
 import { createTranscriber } from "./transcriber.js";
 import { writeNote } from "./notes.js";
@@ -12,7 +12,7 @@ import path from "path";
 const CONFIG_PATH = process.env.CONFIG_PATH || "./config.yaml";
 
 const config = loadConfig(CONFIG_PATH);
-const deepgram = createClient(config.deepgramApiKey);
+const deepgram = new DefaultDeepgramClient(config.deepgramApiKey);
 const transcribe = createTranscriber(deepgram);
 
 const whitelistedNumbers = new Set(config.whitelist.map((c) => c.number));

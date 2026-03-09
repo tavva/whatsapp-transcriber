@@ -3,16 +3,14 @@
 
 export function createTranscriber(deepgramClient) {
   return async function transcribe(audioBuffer) {
-    const { result, error } =
-      await deepgramClient.listen.prerecorded.transcribeFile(audioBuffer, {
+    const result = await deepgramClient.listen.v1.media.transcribeFile(
+      audioBuffer,
+      {
         model: "nova-3",
         smart_format: true,
         detect_language: true,
-      });
-
-    if (error) {
-      throw new Error(error.message || "Deepgram transcription failed");
-    }
+      }
+    );
 
     const channels = result?.results?.channels;
     if (!channels || channels.length === 0) {
