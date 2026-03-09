@@ -1,0 +1,23 @@
+{
+  "name": "whatsapp-transcriber",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "personalgit:tavva/whatsapp-transcriber.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@deepgram/sdk": "^5.0.0",
+    "js-yaml": "^4.1.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.6"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}
