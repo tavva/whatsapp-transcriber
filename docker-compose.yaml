@@ -1,0 +1,17 @@
+# ABOUTME: Compose configuration for running the transcriber as a persistent service.
+# ABOUTME: Mounts config, auth state, transcription output, and failed audio directories.
+
+services:
+  transcriber:
+    build: .
+    container_name: whatsapp-transcriber
+    restart: unless-stopped
+    environment:
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - CONFIG_PATH=/app/config.yaml
+      - AUTH_DIR=/data/auth
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./data/auth:/data/auth
+      - ./data/transcriptions:/data/transcriptions
+      - ./data/failed:/data/failed
