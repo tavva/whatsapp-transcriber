@@ -1,5 +1,5 @@
 // ABOUTME: Loads and validates the YAML config file.
-// ABOUTME: Supports env var override for the Deepgram API key.
+// ABOUTME: Deepgram API key is read from the DEEPGRAM_API_KEY env var.
 
 import fs from "fs";
 import yaml from "js-yaml";
@@ -8,10 +8,10 @@ export function loadConfig(configPath) {
   const raw = fs.readFileSync(configPath, "utf-8");
   const doc = yaml.load(raw);
 
-  const deepgramApiKey = process.env.DEEPGRAM_API_KEY || doc.deepgram_api_key;
+  const deepgramApiKey = process.env.DEEPGRAM_API_KEY;
   if (!deepgramApiKey) {
     throw new Error(
-      "Missing deepgram API key: set deepgram_api_key in config or DEEPGRAM_API_KEY env var"
+      "Missing DEEPGRAM_API_KEY environment variable"
     );
   }
 

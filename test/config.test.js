@@ -1,5 +1,5 @@
 // ABOUTME: Tests for YAML config loading and validation.
-// ABOUTME: Covers whitelist parsing, defaults, env var overrides, and error cases.
+// ABOUTME: Covers whitelist parsing, defaults, env var requirements, and error cases.
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { loadConfig } from "../src/config.js";
@@ -24,14 +24,14 @@ describe("loadConfig", () => {
   it("loads a valid config file", () => {
     fs.writeFileSync(
       configPath,
-      `deepgram_api_key: test-key
-output_dir: /data/transcriptions
+      `output_dir: /data/transcriptions
 whitelist:
   - name: Alice
     number: "447700900000"
 `
     );
 
+    process.env.DEEPGRAM_API_KEY = "test-key";
     const config = loadConfig(configPath);
     expect(config.deepgramApiKey).toBe("test-key");
     expect(config.outputDir).toBe("/data/transcriptions");
@@ -40,38 +40,22 @@ whitelist:
     ]);
   });
 
-  it("uses DEEPGRAM_API_KEY env var over config file value", () => {
-    fs.writeFileSync(
-      configPath,
-      `deepgram_api_key: file-key
-output_dir: /data/transcriptions
-whitelist:
-  - name: Alice
-    number: "447700900000"
-`
-    );
-
-    process.env.DEEPGRAM_API_KEY = "env-key";
-    const config = loadConfig(configPath);
-    expect(config.deepgramApiKey).toBe("env-key");
-  });
-
   it("throws if config file does not exist", () => {
     expect(() => loadConfig("/nonexistent/config.yaml")).toThrow();
   });
 
   it("throws if whitelist is empty", () => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
     fs.writeFileSync(
       configPath,
-      `deepgram_api_key: test-key
-output_dir: /tmp
+      `output_dir: /tmp
 whitelist: []
 `
     );
     expect(() => loadConfig(configPath)).toThrow("whitelist");
   });
 
-  it("throws if deepgram_api_key is missing and env var not set", () => {
+  it("throws if DEEPGRAM_API_KEY env var is not set", () => {
     fs.writeFileSync(
       configPath,
       `output_dir: /tmp
@@ -80,6 +64,6 @@ whitelist:
     number: "447700900000"
 `
     );
-    expect(() => loadConfig(configPath)).toThrow("deepgram");
+    expect(() => loadConfig(configPath)).toThrow("DEEPGRAM_API_KEY");
   });
 });
