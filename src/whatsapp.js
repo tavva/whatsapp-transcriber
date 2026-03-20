@@ -1,16 +1,37 @@
 // ABOUTME: Connects to WhatsApp Web and listens for incoming voice notes.
 // ABOUTME: Filters messages by whitelist and dispatches audio for transcription.
 
+import fs from "fs";
+import path from "path";
 import pkg from "whatsapp-web.js";
 const { Client, LocalAuth } = pkg;
 import qrcode from "qrcode-terminal";
 
+function removeChromiumLockFiles(authDir) {
+  const sessionDir = path.join(authDir, "session");
+  for (const lockFile of ["SingletonLock", "SingletonSocket", "SingletonCookie"]) {
+    const filePath = path.join(sessionDir, lockFile);
+    try {
+      fs.unlinkSync(filePath);
+      console.log(`Removed stale lock file: ${filePath}`);
+    } catch (err) {
+      if (err.code !== "ENOENT") console.warn(`Could not remove ${filePath}:`, err.message);
+    }
+  }
+}
+
 export function createWhatsAppClient({ authDir, onVoiceNote }) {
+  removeChromiumLockFiles(authDir);
+
   const client = new Client({
     authStrategy: new LocalAuth({ dataPath: authDir }),
     puppeteer: {
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-features=LockProfileCookieDatabase",
+      ],
     },
   });
 
@@ -25,6 +46,10 @@ export function createWhatsAppClient({ authDir, onVoiceNote }) {
 
   client.on("ready", () => {
     console.log(`WhatsApp client ready (logged in as ${client.info.pushname})`);
+  });
+
+  client.on("auth_failure", (message) => {
+    console.error("WhatsApp auth failure:", message);
   });
 
   client.on("disconnected", (reason) => {
