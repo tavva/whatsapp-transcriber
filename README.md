@@ -1,5 +1,9 @@
 # WhatsApp Transcriber
 
+> **"But WhatsApp already does transcription!"**
+>
+> Yes, I now know you can transcribe voice notes directly in WhatsApp. I didn't know that when I built this! I'm still using it as it does so automatically (you need to transcribe manually in the WhatsApp app) and you can't transcribe from the web interface or Mac app.
+
 Automatically transcribes WhatsApp voice notes from chosen contacts and saves them as searchable markdown files. Transcripts are also sent back to you in WhatsApp so you can read them right where you received the voice note.
 
 ## What You Get
