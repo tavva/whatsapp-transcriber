@@ -18,6 +18,6 @@
     "whatsapp-web.js": "^1.34.6"
   },
   "devDependencies": {
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.0"
   }
 }
