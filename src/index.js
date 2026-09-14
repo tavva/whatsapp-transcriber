@@ -6,6 +6,7 @@ import { loadConfig } from "./config.js";
 import { createTranscriber } from "./transcriber.js";
 import { writeNote } from "./notes.js";
 import { createWhatsAppClient, sendSelfMessage } from "./whatsapp.js";
+import { createWhitelist } from "./whitelist.js";
 import fs from "fs";
 import path from "path";
 
@@ -18,18 +19,17 @@ const deepgram = new DefaultDeepgramClient({
 });
 const transcribe = createTranscriber(deepgram);
 
-const normalise = (n) => n.replace(/^\+/, "");
-const whitelistedNumbers = new Set(config.whitelist.map((c) => normalise(c.number)));
-const numberToName = Object.fromEntries(
-  config.whitelist.map((c) => [normalise(c.number), c.name])
-);
+const whitelist = createWhitelist(config.whitelist);
 
 const client = createWhatsAppClient({
   authDir: process.env.AUTH_DIR || "./.wwebjs_auth",
   onVoiceNote: async ({ message, contact, number }) => {
-    if (!whitelistedNumbers.has(number)) return;
+    if (!whitelist.allows(number)) {
+      console.log(`Voice note from unknown sender: ${number} (${contact?.pushname || "no name"})`);
+      return;
+    }
 
-    const senderName = numberToName[number] || contact.pushname || "Unknown";
+    const senderName = whitelist.nameFor(number) || contact?.pushname || "Unknown";
     console.log(`Voice note received from ${senderName} (${number})`);
 
     let audioBuffer;
