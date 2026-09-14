@@ -1,4 +1,6 @@
 data/
 node_modules/
 .env
-.wwebjs_auth/
+docs/
+test/
+integration/

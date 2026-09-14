@@ -20,9 +20,15 @@ export function loadConfig(configPath) {
     throw new Error("Config whitelist must contain at least one contact");
   }
 
+  if (!doc.send_to) {
+    throw new Error("Config must set send_to, the number transcripts are sent to");
+  }
+
   return {
     deepgramApiKey,
     outputDir: doc.output_dir || "/data/transcriptions",
     whitelist,
+    groups: doc.groups || [],
+    sendTo: doc.send_to,
   };
 }

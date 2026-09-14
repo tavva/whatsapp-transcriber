@@ -1,5 +1,5 @@
 // ABOUTME: Tests for YAML config loading and validation.
-// ABOUTME: Covers whitelist parsing, defaults, env var requirements, and error cases.
+// ABOUTME: Covers whitelist parsing, groups, recipient, defaults, env vars, and error cases.
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { loadConfig } from "../src/config.js";
@@ -25,6 +25,7 @@ describe("loadConfig", () => {
     fs.writeFileSync(
       configPath,
       `output_dir: /data/transcriptions
+send_to: "447949943542"
 whitelist:
   - name: Alice
     number: "447700900000"
@@ -49,6 +50,7 @@ whitelist:
     fs.writeFileSync(
       configPath,
       `output_dir: /tmp
+send_to: "447949943542"
 whitelist: []
 `
     );
@@ -59,11 +61,72 @@ whitelist: []
     fs.writeFileSync(
       configPath,
       `output_dir: /tmp
+send_to: "447949943542"
 whitelist:
   - name: Alice
     number: "447700900000"
 `
     );
     expect(() => loadConfig(configPath)).toThrow("DEEPGRAM_API_KEY");
+  });
+
+  it("parses the groups to transcribe", () => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
+    fs.writeFileSync(
+      configPath,
+      `output_dir: /tmp
+send_to: "447949943542"
+whitelist:
+  - name: Alice
+    number: "447700900000"
+groups:
+  - name: Nexa
+    jid: "120363428390959185@g.us"
+`
+    );
+    expect(loadConfig(configPath).groups).toEqual([
+      { name: "Nexa", jid: "120363428390959185@g.us" },
+    ]);
+  });
+
+  it("treats groups as optional", () => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
+    fs.writeFileSync(
+      configPath,
+      `output_dir: /tmp
+send_to: "447949943542"
+whitelist:
+  - name: Alice
+    number: "447700900000"
+`
+    );
+    expect(loadConfig(configPath).groups).toEqual([]);
+  });
+
+  it("parses the recipient transcripts are sent to", () => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
+    fs.writeFileSync(
+      configPath,
+      `output_dir: /tmp
+send_to: "447949943542"
+whitelist:
+  - name: Alice
+    number: "447700900000"
+`
+    );
+    expect(loadConfig(configPath).sendTo).toBe("447949943542");
+  });
+
+  it("throws when no recipient is configured", () => {
+    process.env.DEEPGRAM_API_KEY = "test-key";
+    fs.writeFileSync(
+      configPath,
+      `output_dir: /tmp
+whitelist:
+  - name: Alice
+    number: "447700900000"
+`
+    );
+    expect(() => loadConfig(configPath)).toThrow("send_to");
   });
 });
