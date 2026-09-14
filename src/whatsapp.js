@@ -20,6 +20,12 @@ function removeChromiumLockFiles(authDir) {
   }
 }
 
+export function resolveSenderNumber(fromId, contact) {
+  if (fromId.endsWith("@c.us")) return fromId.replace("@c.us", "");
+  if (fromId.endsWith("@lid")) return contact?.number || fromId.replace("@lid", "");
+  return fromId;
+}
+
 export function createWhatsAppClient({ authDir, onVoiceNote }) {
   removeChromiumLockFiles(authDir);
 
@@ -59,11 +65,15 @@ export function createWhatsAppClient({ authDir, onVoiceNote }) {
   client.on("message_create", async (message) => {
     console.log(`Message received: type=${message.type} from=${message.from} hasMedia=${message.hasMedia}`);
     if (message.type !== "ptt" && message.type !== "audio") return;
+    const fromId = message.from;
+    let contact;
+    try {
+      contact = await message.getContact();
+    } catch (err) {
+      console.warn(`Could not resolve contact for ${fromId}:`, err.message);
+    }
 
-    const contact = await message.getContact();
-    const number = message.from.replace("@c.us", "");
-
-    await onVoiceNote({ message, contact, number });
+    await onVoiceNote({ message, contact, number: resolveSenderNumber(fromId, contact) });
   });
 
   return client;
