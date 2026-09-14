@@ -1,10 +1,19 @@
-# Copy to config.yaml and fill in your values.
-# Set DEEPGRAM_API_KEY as an environment variable.
 output_dir: /data/transcriptions
 
+# Where transcripts are sent back to. Must be allowlisted for this service's
+# token in the whatsapp-bridge config.
+send_to: "447700900000"
+
+# Voice notes from these people are transcribed wherever they are sent.
 whitelist:
   - name: Alice
     number: "447700900000"
-    lid: "276909493588153"    # optional, for contacts using WhatsApp LID format
   - name: Bob
     number: "447700900001"
+
+# Voice notes from anyone in these groups are transcribed, credited to
+# whoever actually spoke. Find a group's JID with:
+#   wacli groups list --query <name> --json
+groups:
+  - name: Nexa
+    jid: "120363428390959185@g.us"

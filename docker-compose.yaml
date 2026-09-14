@@ -1,5 +1,5 @@
 # ABOUTME: Compose configuration for running the transcriber as a persistent service.
-# ABOUTME: Mounts config, auth state, transcription output, and failed audio directories.
+# ABOUTME: Reads the wacli store read-only and sends transcripts through whatsapp-bridge.
 
 services:
   transcriber:
@@ -10,10 +10,30 @@ services:
     stop_grace_period: 15s
     environment:
       - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - BRIDGE_TOKEN=${BRIDGE_TOKEN}
+      - BRIDGE_URL=http://whatsapp-bridge:8080
       - CONFIG_PATH=/app/config.yaml
-      - AUTH_DIR=/data/auth
+      - STORE_DIR=/whatsapp
+      - PROGRESS_FILE=/data/state/progress.json
+      - PORT=8080
     volumes:
       - ./config.yaml:/app/config.yaml:ro
-      - ./data/auth:/data/auth
+      - /mnt/ssd/data/whatsapp:/whatsapp:ro
+      - ./data/state:/data/state
       - ./data/transcriptions:/data/transcriptions
       - ./data/failed:/data/failed
+    networks:
+      - default
+      - whatsapp-bridge
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  whatsapp-bridge:
+    name: whatsapp-bridge-net
+    external: true
